@@ -1,0 +1,129 @@
+# coding: utf8
+import pygame
+import random
+import time
+
+# задааем размер окна, создаем окно размера size
+size = [400, 400]
+window = pygame.display.set_mode(size)
+# задаем имя - в кавычках, т.к. текст - это строка
+pygame.display.set_caption('My second file')
+
+screen = pygame.Surface(size)
+wp = False
+speed = 5
+class Sprite:
+    def __init__(self, xpos, ypos, filename):
+        self.x = xpos
+        self.y = ypos
+        self.bitmap = pygame.image.load(filename)
+    def render(self):
+        screen.blit(self.bitmap,(self.x, self.y))
+
+
+def Intersect(s1_x, s2_x, s1_y, s2_y):
+    if ((s1_x>s2_x-40) and (s1_x<s2_x+40) and (s1_y>s2_y-40) and (s1_y<s2_y+40)):
+        return 1
+    else:
+        return 0
+
+# создание персонажей
+# герой
+x_user = 200
+y_user = 200
+# переменные-"переключатели" движения для героя
+hero = Sprite(x_user, y_user, 'archer.png')
+hero.right = True
+hero.up = True
+# враг
+enemy = Sprite(200, 10, 'dragon.png')
+# переменные-"переключатели" движения для врага
+enemy.right = True
+enemy.up = False
+weapon = Sprite(-200, -200, 'arrow.png')
+weapon.push = False
+
+bad_screen = False
+count = 0
+running = True
+
+
+
+
+
+enemy_new = True
+pygame.key.set_repeat(1,1)
+while running:
+    # обработка событий
+    for e in pygame.event.get():
+        if e.type == pygame.QUIT:
+            running  = False
+
+        if e.type == pygame.KEYDOWN:
+            if e.key == pygame.K_LEFT and hero.x>0:
+                hero.x -= 1
+            if e.key == pygame.K_RIGHT and hero.x<360:
+                hero.x += 1
+            if e.key == pygame.K_UP and hero.y>200:
+                hero.y -= 1
+            if e.key == pygame.K_DOWN and hero.y<350:
+                hero.y += 1
+            if e.key == pygame.K_SPACE:
+                if weapon.push == False:
+                    weapon.push = True
+
+    # задайте фоновый цвет
+    screen.fill([23, 198, 93])
+
+    if enemy.right == False:
+        enemy.x -= speed
+        if enemy.x < 0:
+            enemy.right = True
+    else:
+        enemy.x += speed
+        if enemy.x > 360:
+            enemy.right = False
+    
+    if weapon.push == True:
+        weapon.x = hero.x
+        weapon.y = hero.y-40
+        weapon.push = False
+        wp = True
+
+
+    if wp == True:
+        weapon.y -= 5
+        if weapon.y < -60:
+            wp = False
+            weapon.push = False
+
+
+
+    # столкновение персонажей
+    if Intersect(weapon.x, enemy.x, weapon.y, enemy.y):
+        wp = False
+        weapon.push = False
+        weapon.y = -100
+        enemy.x = random.randint(0, 360)
+        speed += 3
+        bad_screen = True
+        #print("\n GAME OVER")
+        #print("Score: ", count)
+        #break
+
+    # отображение персонажей
+    hero.render()
+    enemy.render()
+    weapon.render()
+    
+    if bad_screen == True:
+        screen.fill([230, 20, 20])
+        bad_screen = False
+
+    # отображение окна
+    window.blit(screen, [0, 0])
+    pygame.display.flip()
+    pygame.time.delay(50)
+
+
+pygame.quit()
